@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build: .  # Указывает, что образ собирается из Dockerfile в текущей директории
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydb  # URL подключения к БД PostgreSQL
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}  # Имя пользователя БД (берётся из переменной окружения)
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}  # Пароль пользователя БД (берётся из переменной окружения)
+      JAVA_OPTS: "-Xmx512m"  # Устанавливает максимальный размер кучи JVM (512 MB)
+    ports:
+      - "8080:8080"  # Пробрасывает порт 8080 из контейнера в хост-систему
+    depends_on:
+      db:
+        condition: service_healthy  # Гарантирует, что контейнер с БД будет запущен и готов перед `app`
+    volumes:
+      - maven-repo:/root/.m2  # Использует общий том для кеширования зависимостей Maven
+
+  db:
+    image: postgres:15-alpine  # Использует легковесный образ PostgreSQL 15 на базе Alpine Linux
+    environment:
+      POSTGRES_USER: ${DB_USER}  # Имя пользователя БД (из переменной окружения)
+      POSTGRES_PASSWORD: ${DB_PASSWORD}  # Пароль БД (из переменной окружения)
+      POSTGRES_DB: mydb  # Имя создаваемой базы данных при запуске контейнера
+    volumes:
+      - postgres-data:/var/lib/postgresql/data  # Подключает том для хранения данных БД
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d mydb"]  # Проверяет доступность БД
+      interval: 5s  # Запускает проверку каждые 5 секунд
+      timeout: 5s  # Ожидает ответ не дольше 5 секунд
+      retries: 5  # Повторяет проверку до 5 раз перед признанием контейнера недоступным
+
+volumes:
+  maven-repo:  # Определяет том для кеширования зависимостей Maven
+  postgres-data:  # Определяет том для хранения данных PostgreSQL

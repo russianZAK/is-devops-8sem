@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  webserver:  # Определение контейнера с именем "webserver"
+    build: .  # Сборка образа из Dockerfile в текущей директории
+    image: mynginx  # Имя образа "mynginx" после сборки
+    ports:
+      - "8080:80"  # Проброс порта 8080 хоста на 80-й порт контейнера
+    volumes:
+      - ./static:/usr/share/nginx/html:ro  # Монтирование статических файлов (только для чтения)
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro  # Монтирование конфига nginx (только для чтения)
