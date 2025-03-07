@@ -1,23 +1,6 @@
 version: '3.8'
 
 services:
-  # Система, использующая system.Dockerfile
-  system:
-    build:
-      context: .
-      dockerfile: system.Dockerfile
-    image: system
-
-  # Сервис для сборки
-  build:
-    build:
-      context: .
-      dockerfile: build.Dockerfile
-    depends_on:
-      - 'system'
-    volumes:
-      - maven-repo:/root/.m2  # Использует общий том для кеширования зависимостей Maven
-    image: build
   db:
     image: postgres:15-alpine  # Использует легковесный образ PostgreSQL 15 на базе Alpine Linux
     environment:
@@ -32,10 +15,9 @@ services:
       timeout: 5s  # Ожидает ответ не дольше 5 секунд
       retries: 5  # Повторяет проверку до 5 раз перед признанием контейнера недоступным
 
-  runtime:
+  app:
     build:
       context: .
-      dockerfile: runtime.Dockerfile
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydb  # URL подключения к БД PostgreSQL
       SPRING_DATASOURCE_USERNAME: ${DB_USER}  # Имя пользователя БД (берётся из переменной окружения)
@@ -46,9 +28,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      build:
-        condition: service_started
+    volumes:
+      - maven-repo:/root/.m2  # Использует общий том для кеширования зависимостей Maven
 
 volumes:
-  maven-repo:
-  postgres-data:
+  maven-repo:  # Определяет том для кеширования зависимостей Maven
+  postgres-data:  # Определяет том для хранения данных PostgreSQL

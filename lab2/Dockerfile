@@ -1,5 +1,8 @@
-# Этап сборки: используется базовый образ Maven с Temurin JDK
-FROM maven:3.9.9-eclipse-temurin-23-alpine AS build
+# Использование базового образа Alpine
+FROM alpine:latest AS build
+
+# Устанавка maven для сборки, затем очищается кеш
+RUN apk add --no-cache maven
 
 # Устанавка рабочей директории
 WORKDIR /app
@@ -15,8 +18,11 @@ RUN mvn dependency:go-offline -B
 COPY src src
 RUN mvn package
 
-# Финальный образ: используование легковесного Amazon Corretto 17
-FROM amazoncorretto:17-alpine
+# Использование базового образа Alpine для создания финального образа для выполнения приложения
+FROM alpine:latest
+
+# Установка JRE для запуска Java приложений
+RUN apk add --no-cache openjdk17-jre
 
 # Использование переменных окружения для конфигурации
 ENV APP_HOME="/app" \
