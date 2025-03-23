@@ -18,6 +18,7 @@ services:
   app:
     build:
       context: .
+      dockerfile: runtime.Dockerfile
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/mydb  # URL подключения к БД PostgreSQL
       SPRING_DATASOURCE_USERNAME: ${DB_USER}  # Имя пользователя БД (берётся из переменной окружения)
